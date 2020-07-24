@@ -28,14 +28,14 @@ namespace Closest_Pair_Sweep {
             InitializeComponent();
             cmb_StepSize.ItemsSource = Enum.GetValues(typeof(StepSize)).Cast<StepSize>();
             cmb_StepSize.SelectedItem = StepSize.LineContent;
-            itc_LineContent.ItemsSource = LineContent;
+            itc_SweepStatusStructure.ItemsSource = SweepStatusStructure;
             this.Title = "Closest Pair Sweep";
         }
 
         public ClosestPairSweep Sweep { get; set; }
         private List<Point> prv_Points = new List<Point>();
         private List<Shape> prv_Shapes = new List<Shape>();
-        public readonly ObservableCollection<Point> LineContent = new ObservableCollection<Point>();
+        public readonly ObservableCollection<Point> SweepStatusStructure = new ObservableCollection<Point>();
 
         private void Canvas_MouseLeftButtonDown(object aSender, MouseButtonEventArgs aE) {
             Ellipse lcl_Ellipse = new Ellipse();
@@ -101,13 +101,13 @@ namespace Closest_Pair_Sweep {
         public void UpdateGUI() {
             ClearHighlights();
             tb_LastMsg.Text = Sweep.Status.Info;
-            LineContent.Clear();
+            SweepStatusStructure.Clear();
             foreach (Point lcl_Point in Sweep.LineContent) {
-                LineContent.Add(lcl_Point);
+                SweepStatusStructure.Add(lcl_Point);
             }
 
-            if (LineContent.Count > 0) {
-                double lcl_MinX = LineContent.Select(x => x.X).Min();
+            if (SweepStatusStructure.Count > 0) {
+                double lcl_MinX = Sweep.SweepLinePos - Sweep.Status.D;
                 Line lcl_Left = new Line();
                 lcl_Left.X1 = lcl_MinX;
                 lcl_Left.Y1 = 0;
@@ -117,7 +117,7 @@ namespace Closest_Pair_Sweep {
                 lcl_Left.Stroke = Brushes.LightGreen;
                 cnv_Canvas.Children.Add(lcl_Left);
                 prv_Shapes.Add(lcl_Left);
-                double lcl_MaxX = LineContent.Select(x => x.X).Max();
+                double lcl_MaxX = Sweep.SweepLinePos;
                 Line lcl_Right = new Line();
                 lcl_Right.X1 = lcl_MaxX;
                 lcl_Right.Y1 = 0;

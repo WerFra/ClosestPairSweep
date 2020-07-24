@@ -35,8 +35,8 @@
                 <StackPanel Grid.Row="0">
                     <Label Target="{Binding ElementName=tb_LastMsg}">Last Action:</Label>
                     <TextBox x:Name="tb_LastMsg" IsReadOnly="True" VerticalAlignment="Center" TextWrapping="Wrap"/>
-                    <Label Target="{Binding ElementName=itc_LineContent}">LineContent:</Label>
-                    <ItemsControl x:Name="itc_LineContent"/>
+                    <Label Target="{Binding ElementName=itc_SweepStatusStructure}">SweepStatusStructure:</Label>
+                    <ItemsControl x:Name="itc_SweepStatusStructure"/>
                 </StackPanel>
                 <Border Grid.Row="1">
                     <StackPanel>

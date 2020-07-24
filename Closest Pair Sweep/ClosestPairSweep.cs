@@ -27,6 +27,7 @@ namespace Closest_Pair_Sweep {
 
 
         public IEnumerable<Point> LineContent => prv_LineContent.AsEnumerable();
+        public double SweepLinePos { get; private set; }
 
         public ClosestPairSweep(IEnumerable<Point> aPrv_Points, StepSize aStepSize = StepSize.Sweep) {
             prv_EventPointSchedule.AddRange(aPrv_Points.Select(x => (x.X, InsertAction(x))));
@@ -38,7 +39,7 @@ namespace Closest_Pair_Sweep {
                 prv_LineContent.Add(aPoint);
                 return aPoint;
             };
-            return (lcl_Func, $"Add {aPoint} to LineContent");
+            return (lcl_Func, $"Add {aPoint} to SweepStatusStructure");
         }
 
         private (Func<Point>, string) DeleteAction(Point aPoint) {
@@ -47,20 +48,20 @@ namespace Closest_Pair_Sweep {
                     prv_LineContent.Remove(aPoint);
                 return aPoint;
             };
-            return (lcl_Func, $"Remove {aPoint} from LineContent");
+            return (lcl_Func, $"Remove {aPoint} from SweepStatusStructure");
         }
 
         public async Task<(Point, Point)> Sweep(MainWindow aWindow = null) {
             if (prv_EventPointSchedule.Count < 2)
                 throw new ArgumentException();
 
-            (Func<Point> Func, string Desc) lcl_Pop = prv_EventPointSchedule.Pop();
+            (Func<Point> Func, string Desc) lcl_Pop = GetEvent();
             Point lcl_P1 = lcl_Pop.Func.Invoke();
             if (StepSize >= StepSize.LineContent) {
-                Status = new StatusData() { P1 = lcl_P1,Info = lcl_Pop.Desc };
+                Status = new StatusData() { P1 = lcl_P1, Info = lcl_Pop.Desc };
                 await MayWait(aWindow);
             }
-            lcl_Pop = prv_EventPointSchedule.Pop();
+            lcl_Pop = GetEvent();
             Point lcl_P2 = lcl_Pop.Func.Invoke();
             if (StepSize >= StepSize.LineContent) {
                 Status = new StatusData() { P1 = lcl_P2, Info = lcl_Pop.Desc };
@@ -68,28 +69,28 @@ namespace Closest_Pair_Sweep {
             }
             double lcl_d = Distance(lcl_P1, lcl_P2);
             if (StepSize >= StepSize.LineContent) {
-                Status = new StatusData() { P1 = lcl_P1, P2 = lcl_P2, Info = $"Initial distance betweem {lcl_P1} and {lcl_P2} is {lcl_d:f2}." };
+                Status = new StatusData() { P1 = lcl_P1, P2 = lcl_P2, D = lcl_d, Info = $"Initial distance betweem {lcl_P1} and {lcl_P2} is {lcl_d:f2}." };
                 await MayWait(aWindow);
             }
             prv_EventPointSchedule.Push(lcl_P1.X + lcl_d, DeleteAction(lcl_P1));
             prv_EventPointSchedule.Push(lcl_P2.X + lcl_d, DeleteAction(lcl_P2));
             while (!prv_EventPointSchedule.Empty) {
-                (Func<Point> Func, string Desc) lcl_Event = prv_EventPointSchedule.Pop();
+                (Func<Point> Func, string Desc) lcl_Event = GetEvent();
                 Point lcl_Current = lcl_Event.Func.Invoke();
                 if (StepSize >= StepSize.EventPointSchedule) {
-                    Status = new StatusData() { P1 = lcl_Current, Info = lcl_Event.Desc };
+                    Status = new StatusData() { P1 = lcl_Current, D = lcl_d, Info = lcl_Event.Desc };
                     await MayWait(aWindow);
                 }
                 if (prv_LineContent.Contains(lcl_Current)) {
                     List<Point> lcl_ToRemove = new List<Point>();
                     // InsertAction
                     foreach (var lcl_Point in prv_LineContent) {
-                        
+
                         if (lcl_Current == lcl_Point)
                             continue;
                         if (lcl_Point.X + lcl_d < lcl_Current.X) {
                             if (StepSize >= StepSize.LineContent) {
-                                Status = new StatusData() { P1 = lcl_Point, Info = $"Removing {lcl_Point} early as the min distance has changed and it is now outside of it." };
+                                Status = new StatusData() { P1 = lcl_Point, D = lcl_d, Info = $"Removing {lcl_Point} early as the min distance has changed and it is now outside of it." };
                                 await MayWait(aWindow);
                             }
                             lcl_ToRemove.Add(lcl_Point);
@@ -98,7 +99,7 @@ namespace Closest_Pair_Sweep {
 
                         double lcl_newD = Distance(lcl_Current, lcl_Point);
                         if (StepSize >= StepSize.LineContent) {
-                            Status = new StatusData() { P1 = lcl_Current, P2 = lcl_Point, Info = $"Distance between {lcl_Current} and {lcl_Point} is {lcl_newD:f2}. Old distance is {lcl_d:f2}." };
+                            Status = new StatusData() { P1 = lcl_Current, P2 = lcl_Point, D = lcl_d, Info = $"Distance between {lcl_Current} and {lcl_Point} is {lcl_newD:f2}. Old distance is {lcl_d:f2}." };
                             await MayWait(aWindow);
                         }
                         if (lcl_newD < lcl_d) {
@@ -116,6 +117,11 @@ namespace Closest_Pair_Sweep {
 
             Status = new StatusData() { Info = $"Found minimum distance of {lcl_d:f2}" };
             return (lcl_P1, lcl_P2);
+        }
+
+        private (Func<Point> Func, string Desc) GetEvent() {
+            SweepLinePos = prv_EventPointSchedule.MinPriority;
+            return prv_EventPointSchedule.Pop();
         }
 
         private async Task MayWait(MainWindow aWindow) {

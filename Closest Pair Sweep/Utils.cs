@@ -9,6 +9,7 @@ namespace Closest_Pair_Sweep {
     public class StatusData {
         public Point? P1;
         public Point? P2;
+        public double D;
         public string Info;
     }
 

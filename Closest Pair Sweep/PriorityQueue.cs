@@ -35,6 +35,10 @@ namespace Closest_Pair_Sweep {
             return lcl_Result;
         }
 
+        public V MinElement => prv_List[0].Value;
+
+        public P MinPriority => prv_List[0].Priority;
+
         public bool Empty => prv_LastIndex < 0;
 
         public int Count => prv_LastIndex + 1;
