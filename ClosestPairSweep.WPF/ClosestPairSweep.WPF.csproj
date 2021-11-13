@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <RootNamespace>ClosestPairSweep</RootNamespace>
+    <UseWPF>true</UseWPF>
+    <Copyright></Copyright>
+    <NeutralLanguage>en</NeutralLanguage>
+    <Authors>Franz Wernicke</Authors>
+    <Company />
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\ClosestPairSweep\ClosestPairSweep.csproj" />
+  </ItemGroup>
+
+</Project>

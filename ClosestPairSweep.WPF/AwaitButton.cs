@@ -5,7 +5,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 
-namespace Closest_Pair_Sweep {
+namespace ClosestPairSweep.WPF {
 
     public static class AwaitButtonExtensions {
         public static AwaitButton GetAwaiter(this Button aButton) => new AwaitButton(aButton);
@@ -24,12 +24,12 @@ namespace Closest_Pair_Sweep {
         public void GetResult() { }
 
         public void OnCompleted(Action aContinuation) {
-            RoutedEventHandler h = null;
-            h = (o, e) => {
-                prv_Button.Click -= h;
+            prv_Button.Click += ButtonHandler;
+
+            void ButtonHandler(object aO, RoutedEventArgs aE) {
+                prv_Button.Click -= ButtonHandler;
                 aContinuation();
             };
-            prv_Button.Click += h;
         }
     }
 }

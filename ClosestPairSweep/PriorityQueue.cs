@@ -1,10 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace ClosestPairSweep {
 
-namespace Closest_Pair_Sweep {
+    /// <summary>Binary Heap based priority Queue</summary>
     public class PriorityQueue<P, V> where P : IComparable<P> {
 
-        private readonly List<(P Priority, V Value)> prv_List = new List<(P, V)>();
+        private readonly List<(P Priority, V Value)> prv_List = new();
         private int prv_LastIndex = -1;
 
         public PriorityQueue() { }
@@ -30,6 +29,7 @@ namespace Closest_Pair_Sweep {
         }
 
         public V Pop() {
+            CheckNotEmpty();
             V lcl_Result = prv_List[0].Value;
             RemoveMax();
             return lcl_Result;
@@ -44,29 +44,33 @@ namespace Closest_Pair_Sweep {
         public int Count => prv_LastIndex + 1;
 
         public void RemoveMax() {
-            if (Empty)
-                throw new IndexOutOfRangeException();
+            CheckNotEmpty();
             prv_List[0] = prv_List[prv_LastIndex];
             prv_List.RemoveAt(prv_LastIndex);
             prv_LastIndex--;
             UpdateDown(0);
         }
 
+        private void CheckNotEmpty() {
+            if (Empty)
+                throw new InvalidOperationException("Queue is Empty!");
+        }
+
         // Method based on https://en.wikipedia.org/w/index.php?title=Binary_heap&oldid=951213406#Extract
         private void UpdateDown(int aStart) {
             int lcl_Min = aStart;
-            if (Left(aStart) < prv_List.Count && prv_List[Left(aStart)].Priority.CompareTo(prv_List[aStart].Priority) < 0)
-                lcl_Min = Left(aStart);
-            if (Right(aStart) < prv_List.Count && prv_List[Right(aStart)].Priority.CompareTo(prv_List[lcl_Min].Priority) < 0)
-                lcl_Min = Right(aStart);
+            if (PriorityQueue<P, V>.Left(aStart) < prv_List.Count && prv_List[PriorityQueue<P, V>.Left(aStart)].Priority.CompareTo(prv_List[aStart].Priority) < 0)
+                lcl_Min = PriorityQueue<P, V>.Left(aStart);
+            if (PriorityQueue<P, V>.Right(aStart) < prv_List.Count && prv_List[PriorityQueue<P, V>.Right(aStart)].Priority.CompareTo(prv_List[lcl_Min].Priority) < 0)
+                lcl_Min = PriorityQueue<P, V>.Right(aStart);
             if (lcl_Min != aStart) {
                 Swap(aStart, lcl_Min);
                 UpdateDown(lcl_Min);
             }
         }
 
-        private int Left(int aParent) => (aParent + 1) * 2 - 1;
-        private int Right(int aParent) => (aParent + 1) * 2;
+        private static int Left(int aParent) => (aParent + 1) * 2 - 1;
+        private static int Right(int aParent) => (aParent + 1) * 2;
 
         private void UpdateUp(int aStart) {
             if (aStart < 1)

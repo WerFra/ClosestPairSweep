@@ -1,22 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
+using System.Drawing;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Closest_Pair_Sweep {
+namespace ClosestPairSweep.WPF {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
@@ -24,7 +18,7 @@ namespace Closest_Pair_Sweep {
         public const int CNST_Diameter = 5;
 
         public MainWindow() {
-            Sweep = new ClosestPairSweep(prv_Points);
+            Sweep = new ClosestPair(prv_Points);
             InitializeComponent();
             cmb_StepSize.ItemsSource = Enum.GetValues(typeof(StepSize)).Cast<StepSize>();
             cmb_StepSize.SelectedItem = StepSize.LineContent;
@@ -32,17 +26,18 @@ namespace Closest_Pair_Sweep {
             this.Title = "Closest Pair Sweep";
         }
 
-        public ClosestPairSweep Sweep { get; set; }
-        private List<Point> prv_Points = new List<Point>();
-        private List<Shape> prv_Shapes = new List<Shape>();
-        public readonly ObservableCollection<Point> SweepStatusStructure = new ObservableCollection<Point>();
+        public ClosestPair Sweep { get; set; }
+        private readonly List<PointD> prv_Points = new();
+        private readonly List<Shape> prv_Shapes = new();
+        public readonly ObservableCollection<PointD> SweepStatusStructure = new();
 
         private void Canvas_MouseLeftButtonDown(object aSender, MouseButtonEventArgs aE) {
-            Ellipse lcl_Ellipse = new Ellipse();
-            lcl_Ellipse.Fill = Brushes.Black;
-            lcl_Ellipse.Width = CNST_Diameter;
-            lcl_Ellipse.Height = CNST_Diameter;
-            lcl_Ellipse.StrokeThickness = 2;
+            Ellipse lcl_Ellipse = new() {
+                Fill = Brushes.Black,
+                Width = CNST_Diameter,
+                Height = CNST_Diameter,
+                StrokeThickness = 2
+            };
 
             cnv_Canvas.Children.Add(lcl_Ellipse);
 
@@ -51,7 +46,7 @@ namespace Closest_Pair_Sweep {
             Canvas.SetLeft(lcl_Ellipse, lcl_ClickPos.X - CNST_Diameter / 2);
             Canvas.SetTop(lcl_Ellipse, lcl_ClickPos.Y - CNST_Diameter / 2);
 
-            prv_Points.Add(lcl_ClickPos);
+            prv_Points.Add(new PointD(lcl_ClickPos.X, lcl_ClickPos.Y));
 
             aE.Handled = true;
         }
@@ -66,11 +61,16 @@ namespace Closest_Pair_Sweep {
             btn_Calculate.IsEnabled = false;
             btn_Continue.IsEnabled = true;
 
-            Sweep = new ClosestPairSweep(prv_Points, (StepSize)cmb_StepSize.SelectedItem);
+            Sweep = new ClosestPair(prv_Points, (StepSize)cmb_StepSize.SelectedItem);
+
+            async Task WaitFunc() {
+                UpdateGUI();
+                await btn_Continue;
+            }
 
             try {
-                var (lcl_P1, lcl_P2) = await Sweep.Sweep(this);
-                Line lcl_Line = new Line();
+                var (lcl_P1, lcl_P2) = await Sweep.Sweep(WaitFunc);
+                Line lcl_Line = new ();
                 lcl_Line.X1 = lcl_P1.X;
                 lcl_Line.Y1 = lcl_P1.Y;
                 lcl_Line.X2 = lcl_P2.X;
@@ -80,8 +80,8 @@ namespace Closest_Pair_Sweep {
                 cnv_Canvas.Children.Add(lcl_Line);
                 UpdateGUI();
                 prv_Shapes.Add(lcl_Line);
-            //} catch (ArgumentException) {
-            //    MessageBox.Show("Enter at least two Points!");
+            } catch (InvalidOperationException lcl_Exception) {
+                MessageBox.Show(lcl_Exception.Message);
             } finally {
                 btn_Calculate.IsEnabled = true;
                 btn_Continue.IsEnabled = false;
@@ -102,13 +102,13 @@ namespace Closest_Pair_Sweep {
             ClearHighlights();
             tb_LastMsg.Text = Sweep.Status.Info;
             SweepStatusStructure.Clear();
-            foreach (Point lcl_Point in Sweep.LineContent) {
+            foreach (PointD lcl_Point in Sweep.LineContent) {
                 SweepStatusStructure.Add(lcl_Point);
             }
 
             if (SweepStatusStructure.Count > 0) {
                 double lcl_MinX = Sweep.SweepLinePos - Sweep.Status.D;
-                Line lcl_Left = new Line();
+                Line lcl_Left = new ();
                 lcl_Left.X1 = lcl_MinX;
                 lcl_Left.Y1 = 0;
                 lcl_Left.X2 = lcl_MinX;
@@ -118,7 +118,7 @@ namespace Closest_Pair_Sweep {
                 cnv_Canvas.Children.Add(lcl_Left);
                 prv_Shapes.Add(lcl_Left);
                 double lcl_MaxX = Sweep.SweepLinePos;
-                Line lcl_Right = new Line();
+                Line lcl_Right = new ();
                 lcl_Right.X1 = lcl_MaxX;
                 lcl_Right.Y1 = 0;
                 lcl_Right.X2 = lcl_MaxX;
@@ -130,7 +130,7 @@ namespace Closest_Pair_Sweep {
             }
 
             if (Sweep.Status.P1.HasValue && Sweep.Status.P2.HasValue) {
-                var lcl_Line = new Line();
+                Line lcl_Line = new ();
                 lcl_Line.X1 = Sweep.Status.P1.Value.X;
                 lcl_Line.Y1 = Sweep.Status.P1.Value.Y;
                 lcl_Line.X2 = Sweep.Status.P2.Value.X;
@@ -141,7 +141,7 @@ namespace Closest_Pair_Sweep {
                 prv_Shapes.Add(lcl_Line);
             }
             if (Sweep.Status.P1.HasValue) {
-                Ellipse lcl_Ellipse = new Ellipse();
+                Ellipse lcl_Ellipse = new();
                 lcl_Ellipse.Fill = Brushes.LightBlue;
                 lcl_Ellipse.Width = CNST_Diameter;
                 lcl_Ellipse.Height = CNST_Diameter;
@@ -152,7 +152,7 @@ namespace Closest_Pair_Sweep {
                 prv_Shapes.Add(lcl_Ellipse);
             }
             if (Sweep.Status.P2.HasValue) {
-                Ellipse lcl_Ellipse = new Ellipse();
+                Ellipse lcl_Ellipse = new ();
                 lcl_Ellipse.Fill = Brushes.LightBlue;
                 lcl_Ellipse.Width = CNST_Diameter;
                 lcl_Ellipse.Height = CNST_Diameter;

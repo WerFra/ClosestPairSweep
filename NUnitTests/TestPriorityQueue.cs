@@ -1,12 +1,13 @@
-using Closest_Pair_Sweep;
+using ClosestPairSweep;
 using NUnit.Framework;
+using System;
 
 namespace NUnitTests {
     [TestFixture]
     public class TestPriorityQueue {
 
         [Test]
-        public void Test1() {
+        public void TestInt() {
             var lcl_Queue = new PriorityQueue<int, int>();
             lcl_Queue.Push((4, 4));
             lcl_Queue.Push((9, 9));
@@ -47,6 +48,30 @@ namespace NUnitTests {
             Assert.AreEqual(611, lcl_Queue.Pop());
             Assert.AreEqual(625, lcl_Queue.Pop());
             Assert.AreEqual(635, lcl_Queue.Pop());
+        }
+
+        [Test]
+        public void TestEmpty() {
+            var lcl_Queue = new PriorityQueue<int, int>();
+            Assert.True(lcl_Queue.Empty);
+            lcl_Queue.Push(1, 1);
+            Assert.False(lcl_Queue.Empty);
+        }
+
+        [Test]
+        public void TestCount() {
+            var lcl_Queue = new PriorityQueue<int, int>();
+            Assert.AreEqual(0, lcl_Queue.Count);
+            lcl_Queue.Push(1, 1);
+            Assert.AreEqual(1, lcl_Queue.Count);
+            lcl_Queue.Pop();
+            Assert.AreEqual(0, lcl_Queue.Count);
+        }
+
+        [Test]
+        public void TestThrowOnEmpty() {
+            var lcl_Queue = new PriorityQueue<int, int>();
+            Assert.Throws<InvalidOperationException>(() => lcl_Queue.Pop());
         }
     }
 }
